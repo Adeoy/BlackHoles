@@ -1,5 +1,5 @@
 public class BlackHole {
-  private float diametro;
+  private float diametro, radio;
   private Posicion posicion;
   private color colorC;
   private boolean jugador;
@@ -20,6 +20,7 @@ public class BlackHole {
   
   public BlackHole(float diametro, float x, float y, boolean jugador) {
     this.diametro = diametro;
+    this.radio = diametro / 2;
     this.posicion = new Posicion(x, y);
     this.jugador = jugador;
     this.dx = 1.0; this.dy = 1.0;
@@ -41,8 +42,7 @@ public class BlackHole {
   
   public void dibujar() {
     if(isMoviendose()) {
-      posicion.plusX(dx);
-      posicion.plusY(dy);
+      validarMovimiento(posicion.getX() + dx, posicion.getY() + dy);
       
       frameCont++;
       if(frameCont >= 60) {
@@ -58,7 +58,7 @@ public class BlackHole {
     text(nombre, posicion.getX() - (diametro / 4), posicion.getY());
   }
   
-  public void mover(float x, float y) {
+  public void validarMovimiento(float x, float y) {
     if(y >= 0 && y < height && x < width && x >= 0) {
       posicion = new Posicion(x, y);
     } else if(x >= width) {
@@ -93,9 +93,16 @@ public class BlackHole {
   }
   
   public int colision(float x, float y, float tamanio) {
-    if (x >= posicion.getX() - (diametro / 2) && x <= (posicion.getX() + (diametro / 2)) && y >= posicion.getY() - (diametro / 2) && y <= (posicion.getY() + (diametro / 2))) {
+    if (x >= posicion.getX() - (radio) && x <= posicion.getX() + (radio) && y >= posicion.getY() - (radio) && y <= posicion.getY() + (radio)) {
       if(diametro > tamanio) {
-        diametro += tamanio / 3;
+        setDiametro(diametro + (tamanio / 4));
+        return 1;
+      } else {
+        return 2;
+      }
+    } else if (posicion.getX() >= x - (tamanio / 2) && posicion.getX() <= x + (tamanio / 2) && posicion.getY() >= y - (tamanio / 2) && posicion.getY() <= y + (tamanio / 2)) {
+      if(diametro > tamanio) {
+        setDiametro(diametro + (tamanio / 4));
         return 1;
       } else {
         return 2;
@@ -136,6 +143,7 @@ public class BlackHole {
   
   public void setDiametro(float diametro) {
     this.diametro = diametro;
+    this.radio = diametro / 2;
   }
   
   public void setPosicion(float x, float y) {

@@ -32,24 +32,24 @@ public void init() {
 
 public void draw() {
   background(192);
-  
-  jugador.dibujar();
-  
+    
   for(int i = 0; i < blackHoles.size(); i++) {
     blackHoles.get(i).mover();
     blackHoles.get(i).dibujar();
     
-    int estado = blackHoles.get(i).colision(jugador.getPosicion().getX(), jugador.getPosicion().getY(), jugador.getDiametro());
+    int estado = jugador.colision(blackHoles.get(i).getPosicion().getX(), blackHoles.get(i).getPosicion().getY(), blackHoles.get(i).getDiametro());
 
-    if(estado == 2) {
-      jugador.setDiametro(jugador.getDiametro() + blackHoles.get(i).getDiametro() / 3);
+    if(estado == 1) {
+      //jugador.setDiametro(jugador.getDiametro() + blackHoles.get(i).getDiametro() / 3);
       blackHoles.remove(i);
       comidos++;
-    } else if(estado == 1) {
+    } else if(estado == 2) {
       muertes++;
       init();
     }
   }
+  
+  jugador.dibujar();
   
   fill(255);
   timing();
@@ -71,8 +71,10 @@ public void timing() {
         blackHoles.get(i).setIzquierdaDerecha(rand.nextInt((2 - 0) + 1) + 0);
       }
       
-      if(comidos >= 10 && blackHoles.size() <= 20) {
-        jugador.setDiametro(jugador.getDiametro() / 1.2);
+      if(comidos % 5 == 0) {
+        jugador.setDiametro(jugador.getDiametro() / 1.1);
+        blackHoles.add(new BlackHole(rand.nextInt((150 - 10) + 1) + 10, rand.nextInt((ancho - 0) + 1) + 0, rand.nextInt((alto - 0) + 1), false));
+        blackHoles.add(new BlackHole(rand.nextInt((150 - 10) + 1) + 10, rand.nextInt((ancho - 0) + 1) + 0, rand.nextInt((alto - 0) + 1), false));
         blackHoles.add(new BlackHole(rand.nextInt((150 - 10) + 1) + 10, rand.nextInt((ancho - 0) + 1) + 0, rand.nextInt((alto - 0) + 1), false));
       }
     }
@@ -81,9 +83,10 @@ public void timing() {
   textSize(20);
   text("Segundos: " + sec, 10, 30);
 }
-/*
+
 public void mouseDragged() {
-  jugador.mover(mouseX, mouseY);
+  jugador.softMove(mouseX, mouseY);
+  /*jugador.mover(mouseX, mouseY);
   for(int i = 0; i < blackHoles.size(); i++) {
     int estado = jugador.colision(blackHoles.get(i).getPosicion().getX(), blackHoles.get(i).getPosicion().getY(), blackHoles.get(i).getDiametro());
 
@@ -94,12 +97,12 @@ public void mouseDragged() {
       muertes++;
       init();
     }
-  }
+  }*/
 }
-*/
-public void mousePressed() {
+
+/*public void mousePressed() {
   jugador.softMove(mouseX, mouseY);
-}
+}*/
 
 public void keyPressed() {
   if(keyCode == 'R') {
