@@ -15,7 +15,7 @@ public class BlackHole {
   
   private int arribaAbajo, izquierdaDerecha;
   
-  private boolean moviendose;
+  private boolean moviendose, detener;
   private int frameCont;
   
   public BlackHole(float diametro, float x, float y, boolean jugador) {
@@ -36,7 +36,7 @@ public class BlackHole {
       this.colorC = color(192, 0, 0); // Rojo
     }
     
-    this.moviendose = false;
+    this.moviendose = false; this.detener = false;
     this.frameCont = 0;
   }
   
@@ -113,6 +113,10 @@ public class BlackHole {
   }
   
   public void mover() {
+    if(isDetener()) {
+      return;
+    }
+    
     int x = 0, y = 0;
     
     if(izquierdaDerecha == 2) {
@@ -166,6 +170,10 @@ public class BlackHole {
     this.moviendose = moviendose;
   }
   
+  public void setDetener(boolean detener) {
+    this.detener = detener;
+  }
+  
   public float getDiametro() {
     return diametro;
   }
@@ -188,5 +196,9 @@ public class BlackHole {
   
   public boolean isMoviendose() {
     return moviendose;
+  }
+  
+  public boolean isDetener() {
+    return detener;
   }
 }

@@ -9,6 +9,7 @@ private int ancho = 800, alto = 600;
 private int n, sec;
 private int comidos;
 private int muertes = 0;
+private float masaTotal = 50.0;
 
 public void setup() {
   frameRate(60);
@@ -26,7 +27,7 @@ public void init() {
   comidos = 0;
   
   for(int i = 0; i < numBlackHoles; i++) {
-    blackHoles.add(new BlackHole(rand.nextInt((150 - 10) + 1) + 10, rand.nextInt((ancho - 0) + 1) + 0, rand.nextInt((alto - 0) + 1), false));
+    addBlackHole();
   }
 }
 
@@ -40,12 +41,25 @@ public void draw() {
     int estado = jugador.colision(blackHoles.get(i).getPosicion().getX(), blackHoles.get(i).getPosicion().getY(), blackHoles.get(i).getDiametro());
 
     if(estado == 1) {
-      //jugador.setDiametro(jugador.getDiametro() + blackHoles.get(i).getDiametro() / 3);
-      blackHoles.remove(i);
+      removeBlackHole(i);
       comidos++;
     } else if(estado == 2) {
       muertes++;
       init();
+    } else {
+      for(int j = 0; j < blackHoles.size(); j++) {
+        if(i != j) {
+          int estado2 = blackHoles.get(i).colision(blackHoles.get(j).getPosicion().getX(), blackHoles.get(j).getPosicion().getY(), blackHoles.get(j).getDiametro());
+  
+          if(estado2 == 1) {
+            removeBlackHole(j);
+            break;
+          } else if(estado2 == 2) {
+            removeBlackHole(i);
+            break;
+          }
+        }
+      }
     }
   }
   
@@ -54,9 +68,7 @@ public void draw() {
   fill(255);
   timing();
   
-  text("Reset: R", width - 120, 30);
-  text("Comidos: " + comidos, width - 120, 60);
-  text("Muertes: " + muertes, width - 120, 90);
+  printScreen();
 }
 
 public void timing() {
@@ -70,13 +82,6 @@ public void timing() {
         blackHoles.get(i).setArribaAbajo(rand.nextInt((2 - 0) + 1) + 0);
         blackHoles.get(i).setIzquierdaDerecha(rand.nextInt((2 - 0) + 1) + 0);
       }
-      
-      if(comidos % 5 == 0) {
-        jugador.setDiametro(jugador.getDiametro() / 1.1);
-        blackHoles.add(new BlackHole(rand.nextInt((150 - 10) + 1) + 10, rand.nextInt((ancho - 0) + 1) + 0, rand.nextInt((alto - 0) + 1), false));
-        blackHoles.add(new BlackHole(rand.nextInt((150 - 10) + 1) + 10, rand.nextInt((ancho - 0) + 1) + 0, rand.nextInt((alto - 0) + 1), false));
-        blackHoles.add(new BlackHole(rand.nextInt((150 - 10) + 1) + 10, rand.nextInt((ancho - 0) + 1) + 0, rand.nextInt((alto - 0) + 1), false));
-      }
     }
   }
   
@@ -86,18 +91,6 @@ public void timing() {
 
 public void mouseDragged() {
   jugador.softMove(mouseX, mouseY);
-  /*jugador.mover(mouseX, mouseY);
-  for(int i = 0; i < blackHoles.size(); i++) {
-    int estado = jugador.colision(blackHoles.get(i).getPosicion().getX(), blackHoles.get(i).getPosicion().getY(), blackHoles.get(i).getDiametro());
-
-    if(estado == 1) {
-      blackHoles.remove(i);
-      comidos++;
-    } else if(estado == 2) {
-      muertes++;
-      init();
-    }
-  }*/
 }
 
 /*public void mousePressed() {
@@ -107,5 +100,45 @@ public void mouseDragged() {
 public void keyPressed() {
   if(keyCode == 'R') {
     init();
+  } else if(keyCode == 'N') {
+    addBlackHole();
+  } else if(keyCode == 'D') {
+    detener();
+  } else if(keyCode == 'C') {
+    continuar();
+  }
+}
+
+public void printScreen() {
+  text("Reset: R", width - 160, 30);
+  text("BlackHole: N", width - 160, 60);
+  text("Detener: D", width - 160, 90);
+  text("Continuar: C", width - 160, 120);
+  text("BlackHoles: " + blackHoles.size(), width - 160, 150);
+  text("Comidos: " + comidos, width - 160, 180);
+  text("Muertes: " + muertes, width - 160, 210);
+  //text("Masa Total: " + masaTotal, width - 160, 150); Recalcular mejor..
+}
+
+public void addBlackHole() {
+  float masa = rand.nextInt((150 - 10) + 1) + 10;
+  masaTotal += masa;
+  blackHoles.add(new BlackHole(masa, rand.nextInt((ancho - 0) + 1) + 0, rand.nextInt((alto - 0) + 1), false));
+}
+
+public void removeBlackHole(int index) {
+  masaTotal -= blackHoles.get(index).getDiametro();
+  blackHoles.remove(index);
+}
+
+public void detener() {
+  for(int i = 0; i < blackHoles.size(); i++) {
+    blackHoles.get(i).setDetener(true);
+  }
+}
+
+public void continuar() {
+  for(int i = 0; i < blackHoles.size(); i++) {
+    blackHoles.get(i).setDetener(false);
   }
 }
