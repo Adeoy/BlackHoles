@@ -2,7 +2,7 @@ import java.util.Random;
 
 private ArrayList<BlackHole> blackHoles;
 private BlackHole jugador;
-private int numBlackHoles = 20;
+private int numBlackHoles = 15;
 private Random rand;
 private int ancho = 800, alto = 600;
 
@@ -38,29 +38,7 @@ public void draw() {
     blackHoles.get(i).mover();
     blackHoles.get(i).dibujar();
     
-    int estado = jugador.colision(blackHoles.get(i).getPosicion().getX(), blackHoles.get(i).getPosicion().getY(), blackHoles.get(i).getDiametro());
-
-    if(estado == 1) {
-      removeBlackHole(i);
-      comidos++;
-    } else if(estado == 2) {
-      muertes++;
-      init();
-    } else {
-      for(int j = 0; j < blackHoles.size(); j++) {
-        if(i != j) {
-          int estado2 = blackHoles.get(i).colision(blackHoles.get(j).getPosicion().getX(), blackHoles.get(j).getPosicion().getY(), blackHoles.get(j).getDiametro());
-  
-          if(estado2 == 1) {
-            removeBlackHole(j);
-            break;
-          } else if(estado2 == 2) {
-            removeBlackHole(i);
-            break;
-          }
-        }
-      }
-    }
+    validarColision(i);
   }
   
   jugador.dibujar();
@@ -92,10 +70,6 @@ public void timing() {
 public void mouseDragged() {
   jugador.softMove(mouseX, mouseY);
 }
-
-/*public void mousePressed() {
-  jugador.softMove(mouseX, mouseY);
-}*/
 
 public void keyPressed() {
   if(keyCode == 'R') {
@@ -140,5 +114,31 @@ public void detener() {
 public void continuar() {
   for(int i = 0; i < blackHoles.size(); i++) {
     blackHoles.get(i).setDetener(false);
+  }
+}
+
+public void validarColision(int i) {
+  int estado = jugador.colision(blackHoles.get(i).getPosicion().getX(), blackHoles.get(i).getPosicion().getY(), blackHoles.get(i).getDiametro());
+
+  if(estado == 1) {
+    removeBlackHole(i);
+    comidos++;
+  } else if(estado == 2) {
+    muertes++;
+    init();
+  } else {
+    for(int j = 0; j < blackHoles.size(); j++) {
+      if(i != j) {
+        int estado2 = blackHoles.get(i).colision(blackHoles.get(j).getPosicion().getX(), blackHoles.get(j).getPosicion().getY(), blackHoles.get(j).getDiametro());
+  
+        if(estado2 == 1) {
+          removeBlackHole(j);
+          break;
+        } else if(estado2 == 2) {
+          removeBlackHole(i);
+          break;
+        }
+      }
+    }
   }
 }

@@ -93,20 +93,15 @@ public class BlackHole {
   }
   
   public int colision(float x, float y, float tamanio) {
-    if (x >= posicion.getX() - (radio) && x <= posicion.getX() + (radio) && y >= posicion.getY() - (radio) && y <= posicion.getY() + (radio)) {
-      if(diametro > tamanio) {
-        setDiametro(diametro + (tamanio / 4));
-        return 1;
-      } else {
+    float m = 0.0;
+    
+    m = (float) Math.sqrt(pow(x - posicion.getX(), 2) + pow(y - posicion.getY(), 2));
+    
+    if(radio > m && tamanio / 2 < radio) {
+      setDiametro(diametro + (tamanio / 4));
+      return 1;
+    } else if(tamanio / 2 > m && radio < tamanio / 2) {
         return 2;
-      }
-    } else if (posicion.getX() >= x - (tamanio / 2) && posicion.getX() <= x + (tamanio / 2) && posicion.getY() >= y - (tamanio / 2) && posicion.getY() <= y + (tamanio / 2)) {
-      if(diametro > tamanio) {
-        setDiametro(diametro + (tamanio / 4));
-        return 1;
-      } else {
-        return 2;
-      }
     } else {
       return 0;
     }
