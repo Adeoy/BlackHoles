@@ -33,7 +33,8 @@ public class BlackHole {
     if(isJugador()) {
       this.colorC = color(0, 128, 192); // Azul
     } else {
-      this.colorC = color(192, 0, 0); // Rojo
+      //this.colorC = color(192, 0, 0); // Rojo
+      this.colorC = color(rand.nextInt(255), rand.nextInt(255), rand.nextInt(255));
     }
     
     this.moviendose = false; this.detener = false;
@@ -48,6 +49,12 @@ public class BlackHole {
       if(frameCont >= 60) {
         moviendose = false;
       }
+    }
+    
+    if(!isJugador()) {
+      noStroke();
+    } else {
+      stroke(0);
     }
     
     fill(colorC);
