@@ -1,6 +1,8 @@
+import ddf.minim.*;
+
 private ArrayList<BlackHole> blackHoles;
 private BlackHole jugador;
-private int numBlackHoles = 15;
+private int numBlackHoles = 25;
 private Random rand;
 private int ancho = 800, alto = 600;
 
@@ -11,10 +13,20 @@ private int muertes = 0;
 private boolean inmortal;
 private PImage bg;
 
+Minim minim;
+AudioPlayer song;
+AudioPlayer absorb;
+AudioPlayer enemyAbsorb;
+
 public void setup() {
     frameRate(60);
     size(800, 600);
     bg = loadImage("bg.png");
+    
+    minim = new Minim(this);
+ 
+    song = minim.loadFile("space.mp3");
+    song.play();
     
     init();
 }
@@ -135,6 +147,10 @@ public boolean validarColision(int i) {
         removeBlackHole(i);
         colision = true;
         comidos++;
+        
+        absorb = minim.loadFile("absorb0" + (rand.nextInt((4 - 1) + 1) + 1) + ".mp3");
+        //absorb = minim.loadFile("absorb05.mp3");
+        absorb.play();
     } else if (estado == 2 && !inmortal) {
         muertes++;
         init();
@@ -146,11 +162,19 @@ public boolean validarColision(int i) {
                 if (estado2 == 1) {
                     removeBlackHole(j);
                     colision = true;
+                    
+                    enemyAbsorb = minim.loadFile("absorb06.mp3");
+                    enemyAbsorb.play();
+                    
                     break;
                 } else if (estado2 == 2) {
                     blackHoles.get(j).setDiametro(blackHoles.get(j).getDiametro() + (blackHoles.get(i).getDiametro() / 4));                    
                     removeBlackHole(i);
                     colision = true;
+                    
+                    enemyAbsorb = minim.loadFile("absorb06.mp3");
+                    enemyAbsorb.play();
+                    
                     break;
                 }
             }

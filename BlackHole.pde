@@ -56,16 +56,22 @@ public class BlackHole {
                 moviendose = false;
             }
         }
-
-        if (!isJugador()) {
-            noStroke();
-        } else {
+        
+        if (isJugador()) {
+            //fill(color(255, 255, 255, 128));
+            //ellipse(posicion.getX(), posicion.getY(), diametro * 1.1, diametro * 1.1);
             stroke(255);
+        } else {
+            noStroke();
         }
-
+        
         fill(colorC);
         ellipse(posicion.getX(), posicion.getY(), diametro, diametro);
-
+        
+        noStroke();
+        fill(color(31, 31, 31));
+        ellipse(posicion.getX(), posicion.getY(), diametro * 0.66, diametro * 0.66);
+        
         textSize(12);
         fill(255);
         text(nombre, posicion.getX() - (diametro / 4), posicion.getY());
