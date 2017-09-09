@@ -2,9 +2,12 @@ import ddf.minim.*;
 
 private ArrayList<BlackHole> blackHoles;
 private BlackHole jugador;
-private int numBlackHoles = 25;
+private int numBlackHoles = 20;
 private Random rand;
 private int ancho = 800, alto = 600;
+
+private int INIT_MAX_DIAMETRO = 150;
+private int INIT_MIN_DIAMETRO = 10;
 
 private int n, sec;
 private int comidos;
@@ -13,10 +16,11 @@ private int muertes = 0;
 private boolean inmortal;
 private PImage bg;
 
-Minim minim;
-AudioPlayer song;
-AudioPlayer absorb;
-AudioPlayer enemyAbsorb;
+private Minim minim;
+private AudioPlayer song;
+private AudioPlayer absorb;
+private AudioPlayer enemyAbsorb;
+private AudioPlayer gameover;
 
 public void setup() {
     frameRate(60);
@@ -26,7 +30,7 @@ public void setup() {
     minim = new Minim(this);
  
     song = minim.loadFile("space.mp3");
-    song.play();
+    //song.play();
     
     init();
 }
@@ -53,12 +57,21 @@ public void draw() {
         blackHoles.get(i).mover();
         blackHoles.get(i).dibujar();
 
-        if(validarColision(i)) {
-          i--;
+        validarColision(i);
+        
+        if(blackHoles.get(i).isMuerto()) {
+            removeBlackHole(i);
+            i--;
         }
     }
 
     jugador.dibujar();
+    
+    if(jugador.isMuerto()) {
+        muertes++;
+        init();
+    }
+    
     fill(255);
     
     timing();
@@ -73,8 +86,8 @@ public void timing() {
 
         if (sec % 2 == 0) {
             for (int i = 0; i < blackHoles.size(); i++) {
-                blackHoles.get(i).setArribaAbajo(rand.nextInt((2 - 0) + 1) + 0);
-                blackHoles.get(i).setIzquierdaDerecha(rand.nextInt((2 - 0) + 1) + 0);
+                blackHoles.get(i).setArribaAbajo(getRandom(0, 2));
+                blackHoles.get(i).setIzquierdaDerecha(getRandom(0, 2));
             }
             
             if(rand.nextInt((2 - 1) + 1) + 1 == 1) {
@@ -117,9 +130,30 @@ public void printScreen() {
 }
 
 public void addBlackHole() {
-    float masa = rand.nextInt((150 - 10) + 1) + 10;
+    float diametro;
+    boolean valido;
+    float x, y;
+    
+    do {
+        valido = true;
+        diametro = getRandom(INIT_MIN_DIAMETRO, INIT_MAX_DIAMETRO);
+        x = getRandom(INIT_MAX_DIAMETRO / 2, ancho - (INIT_MAX_DIAMETRO / 2));
+        y = getRandom(INIT_MAX_DIAMETRO / 2, alto - (INIT_MAX_DIAMETRO / 2));
+        
+        if(jugador.colision(x, y, diametro) != 0) {
+            valido = false;
+            continue;
+        }
+        
+        for(int i = 0; i < blackHoles.size(); i++) {
+            if(blackHoles.get(i).colision(x, y, diametro) != 0) {
+              valido = false;
+            }
+        }
+    } while (!valido);
+    
     //masaTotal += masa;
-    blackHoles.add(new BlackHole(masa, rand.nextInt((ancho - 0) + 1) + 0, rand.nextInt((alto - 0) + 1), false));
+    blackHoles.add(new BlackHole(diametro, x, y, false));
 }
 
 public void removeBlackHole(int index) {
@@ -139,46 +173,49 @@ public void continuar() {
     }
 }
 
-public boolean validarColision(int i) {
-    boolean colision = false;
-    int estado = jugador.colision(blackHoles.get(i).getPosicion().getX(), blackHoles.get(i).getPosicion().getY(), blackHoles.get(i).getDiametro());
+public void validarColision(int i) {
+    int estado = jugador.colision(blackHoles.get(i).getPosicion().getX(), blackHoles.get(i).getPosicion().getY(), blackHoles.get(i).getDiametro(), blackHoles.get(i).isMuriendo());
 
     if (estado == 1) {
-        removeBlackHole(i);
-        colision = true;
+        jugador.setCreciendo(true, blackHoles.get(i).getDiametro() / 4);
+        //jugador.setDiametro(jugador.getDiametro() + (blackHoles.get(i).getDiametro() / 4));
+        blackHoles.get(i).setMuriendo(true);
         comidos++;
         
-        absorb = minim.loadFile("absorb0" + (rand.nextInt((4 - 1) + 1) + 1) + ".mp3");
+        absorb = minim.loadFile("absorb0" + (getRandom(1, 4)) + ".mp3");
         //absorb = minim.loadFile("absorb05.mp3");
         absorb.play();
     } else if (estado == 2 && !inmortal) {
-        muertes++;
-        init();
-    } else {
+        jugador.setMuriendo(true);
+        gameover = minim.loadFile("gameover.mp3");
+        gameover.play();
+    } else if (estado == 0) {
         for (int j = 0; j < blackHoles.size(); j++) {
             if(i != j) {
-                int estado2 = blackHoles.get(i).colision(blackHoles.get(j).getPosicion().getX(), blackHoles.get(j).getPosicion().getY(), blackHoles.get(j).getDiametro());
+                int estado2 = blackHoles.get(i).colision(blackHoles.get(j).getPosicion().getX(), blackHoles.get(j).getPosicion().getY(), blackHoles.get(j).getDiametro(), blackHoles.get(j).isMuriendo());
     
                 if (estado2 == 1) {
-                    removeBlackHole(j);
-                    colision = true;
+                    //blackHoles.get(i).setDiametro(blackHoles.get(i).getDiametro() + (blackHoles.get(j).getDiametro() / 4));
+                    blackHoles.get(i).setCreciendo(true, blackHoles.get(j).getDiametro() / 4);
+                    blackHoles.get(j).setMuriendo(true);
                     
                     enemyAbsorb = minim.loadFile("absorb06.mp3");
                     enemyAbsorb.play();
-                    
                     break;
                 } else if (estado2 == 2) {
-                    blackHoles.get(j).setDiametro(blackHoles.get(j).getDiametro() + (blackHoles.get(i).getDiametro() / 4));                    
-                    removeBlackHole(i);
-                    colision = true;
+                    //blackHoles.get(j).setDiametro(blackHoles.get(j).getDiametro() + (blackHoles.get(i).getDiametro() / 4));                    
+                    blackHoles.get(j).setCreciendo(true, blackHoles.get(i).getDiametro() / 4);
+                    blackHoles.get(i).setMuriendo(true);
                     
                     enemyAbsorb = minim.loadFile("absorb06.mp3");
                     enemyAbsorb.play();
-                    
                     break;
                 }
             }
         }
     }
-    return colision;
+}
+
+public int getRandom(int min, int max) {
+    return rand.nextInt(max - min + 1) + min;
 }

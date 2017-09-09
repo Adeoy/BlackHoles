@@ -2,7 +2,7 @@ import java.util.Random;
 
 public class BlackHole {
 
-    private float diametro, radio;
+    private float diametro, radio, diametroFinal, masDiametro;
     private Posicion posicion;
     private color colorC;
     private boolean jugador;
@@ -18,8 +18,8 @@ public class BlackHole {
 
     private int arribaAbajo, izquierdaDerecha;
 
-    private boolean moviendose, detener;
-    private int frameCont;
+    private boolean moviendose, detener, muriendo, muerto, creciendo;
+    private int frameCont, frameCrece;
 
     public BlackHole(float diametro, float x, float y, boolean jugador) {
         this.diametro = diametro;
@@ -35,6 +35,7 @@ public class BlackHole {
         this.izquierdaDerecha = rand.nextInt((2 - 1) + 1) + 1; // Derecha
 
         if (isJugador()) {
+          this.nombre = "Omega";
             //this.colorC = color(0, 128, 192); // Azul
             this.colorC = color(75, 0, 130);
         } else {
@@ -44,17 +45,24 @@ public class BlackHole {
 
         this.moviendose = false;
         this.detener = false;
-        this.frameCont = 0;
+        this.muriendo = false;
+        this.muerto = false;
+        this.creciendo = false;
+        this.frameCont = 0; this.frameCrece = 0;
+        this.diametroFinal = 0.0f; this.masDiametro = 0.0f;
     }
 
     public void dibujar() {
+        if(isMuriendo()) {
+            animarMuerte();
+        }
+      
         if (isMoviendose()) {
-            validarMovimiento(posicion.getX() + dx, posicion.getY() + dy);
-
-            frameCont++;
-            if (frameCont >= 60) {
-                moviendose = false;
-            }
+            animarMovimiento();
+        }
+        
+        if(isCreciendo()) {
+            animarCrecimiento();
         }
         
         if (isJugador()) {
@@ -74,8 +82,8 @@ public class BlackHole {
         
         textSize(12);
         fill(255);
-        text(nombre, posicion.getX() - (diametro / 4), posicion.getY());
-        text(diametro, posicion.getX() - (diametro / 4), posicion.getY() + 10);
+        //text(nombre, posicion.getX() - (diametro / 4), posicion.getY());
+        //text(diametro, posicion.getX() - (diametro / 4), posicion.getY() + 10);
     }
 
     public void validarMovimiento(float x, float y) {
@@ -112,15 +120,36 @@ public class BlackHole {
         }
     }
 
-    public int colision(float x, float y, float tamanio) {
+    public int colision(float x, float y, float tamanio, boolean enemigoMuriendo) {
+        if(enemigoMuriendo) {
+            return 3;
+        }
+        
+        if(isJugador() && isMuriendo()) {
+          return 0;
+        }
+      
         float m = 0.0f;
 
         m = (float) Math.sqrt(pow(x - posicion.getX(), 2) + pow(y - posicion.getY(), 2));
 
         if (radio > m && tamanio / 2 < radio) {
-            setDiametro(diametro + (tamanio / 4));
             return 1;
         } else if (tamanio / 2 > m && radio < tamanio / 2) {
+            return 2;
+        } else {
+            return 0;
+        }
+    }
+    
+    public int colision(float x, float y, float tamanio) {
+        float m = 0.0f;
+
+        m = (float) Math.sqrt(pow(x - posicion.getX(), 2) + pow(y - posicion.getY(), 2));
+
+        if (diametro > m && tamanio < diametro) {
+            return 1;
+        } else if (tamanio > m && diametro < tamanio) {
             return 2;
         } else {
             return 0;
@@ -153,11 +182,40 @@ public class BlackHole {
     }
 
     public void softMove(float x, float y) {
+        if(isMuriendo()) {
+            return;
+        }
+      
         moviendose = true;
         frameCont = 0;
 
         dx = (x - posicion.getX()) / 60;
         dy = (y - posicion.getY()) / 60;
+    }
+    
+    public void animarMovimiento() {
+        validarMovimiento(posicion.getX() + dx, posicion.getY() + dy);
+
+        frameCont++;
+        if (frameCont >= 60) {
+            moviendose = false;
+        }
+    }
+    
+    public void animarMuerte() {
+        setDiametro(diametro - diametroFinal / 60);
+        frameCont++;
+        if(frameCont >= 60) {
+            muerto = true;
+        }
+    }
+    
+    public void animarCrecimiento() {
+        setDiametro(diametro + masDiametro / 60);
+        frameCrece++;
+        if(frameCrece >= 60) {
+            creciendo = false;
+        }
     }
 
     public void setDiametro(float diametro) {
@@ -188,6 +246,24 @@ public class BlackHole {
     public void setDetener(boolean detener) {
         this.detener = detener;
     }
+    
+    public void setMuriendo(boolean muriendo) {
+        this.frameCont = 0;
+        this.moviendose = false;
+        this.detener = true;
+        this.diametroFinal = diametro;
+        this.muriendo = muriendo;
+    }
+    
+    public void setMuerto(boolean muerto) {
+        this.muerto = muerto;
+    }
+    
+    public void setCreciendo(boolean creciendo, float masDiametro) {
+        this.frameCrece = 0;
+        this.masDiametro = masDiametro;
+        this.creciendo = creciendo;
+    }
 
     public float getDiametro() {
         return diametro;
@@ -215,5 +291,17 @@ public class BlackHole {
 
     public boolean isDetener() {
         return detener;
+    }
+    
+    public boolean isMuriendo() {
+        return muriendo;
+    }
+    
+    public boolean isMuerto() {
+        return muerto;
+    }
+    
+    public boolean isCreciendo() {
+        return creciendo;
     }
 }
