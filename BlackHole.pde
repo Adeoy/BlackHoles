@@ -2,7 +2,7 @@ import java.util.Random;
 
 public class BlackHole {
 
-    private float diametro, radio, diametroFinal, masDiametro;
+    private float diametro, radio, diametroFinal, masDiametro, menosDiametro;
     private Posicion posicion;
     private color colorC;
     private boolean jugador;
@@ -18,8 +18,8 @@ public class BlackHole {
 
     private int arribaAbajo, izquierdaDerecha;
 
-    private boolean moviendose, detener, muriendo, muerto, creciendo;
-    private int frameCont, frameCrece;
+    private boolean moviendose, detener, muriendo, muerto, creciendo, decreciendo;
+    private int frameCont, frameCrece, frameDecrece;
 
     public BlackHole(float diametro, float x, float y, boolean jugador) {
         this.diametro = diametro;
@@ -47,9 +47,9 @@ public class BlackHole {
         this.detener = false;
         this.muriendo = false;
         this.muerto = false;
-        this.creciendo = false;
-        this.frameCont = 0; this.frameCrece = 0;
-        this.diametroFinal = 0.0f; this.masDiametro = 0.0f;
+        this.creciendo = false; this.decreciendo = false;
+        this.frameCont = 0; this.frameCrece = 0; this.frameDecrece = 0;
+        this.diametroFinal = 0.0f; this.masDiametro = 0.0f; this.menosDiametro = 0.0f;
     }
 
     public void dibujar() {
@@ -63,6 +63,10 @@ public class BlackHole {
         
         if(isCreciendo()) {
             animarCrecimiento();
+        }
+        
+        if(isDecreciendo()) {
+            animarDecrecimiento();
         }
         
         if (isJugador()) {
@@ -217,6 +221,14 @@ public class BlackHole {
             creciendo = false;
         }
     }
+    
+    public void animarDecrecimiento() {
+        setDiametro(diametro - menosDiametro / 60);
+        frameDecrece++;
+        if(frameDecrece >= 60) {
+            decreciendo = false;
+        }
+    }
 
     public void setDiametro(float diametro) {
         this.diametro = diametro;
@@ -259,10 +271,16 @@ public class BlackHole {
         this.muerto = muerto;
     }
     
-    public void setCreciendo(boolean creciendo, float masDiametro) {
+    public void setCreciendo(float masDiametro) {
         this.frameCrece = 0;
         this.masDiametro = masDiametro;
-        this.creciendo = creciendo;
+        this.creciendo = true;
+    }
+    
+    public void setDecreciendo(float menosDiametro) {
+        this.frameDecrece = 0;
+        this.menosDiametro = menosDiametro;
+        this.decreciendo = true;
     }
 
     public float getDiametro() {
@@ -303,5 +321,9 @@ public class BlackHole {
     
     public boolean isCreciendo() {
         return creciendo;
+    }
+    
+    public boolean isDecreciendo() {
+        return decreciendo;
     }
 }
