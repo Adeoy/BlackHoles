@@ -1,9 +1,11 @@
 import ddf.minim.*;
 
+private int VERSION = 11;
+
 private ArrayList<BlackHole> blackHoles;
-private BlackHole jugador;
+private Jugador jugador;
 private int numBlackHoles = 5;
-private Random rand;
+private Utils utils;
 private int ancho = 800, alto = 600;
 private int fdx = 0, fdy = 0, direccionFondo;
 private float diametroJugador = alto / 10;
@@ -45,9 +47,9 @@ public void setup() {
 }
 
 public void init() {
-    jugador = new BlackHole(diametroJugador, width / 2, height / 2, true);
+    jugador = new Jugador(diametroJugador, width / 2, height / 2);
     blackHoles = new ArrayList();
-    rand = new Random();
+    utils = new Utils();
     inmortal = false;
     visibleComando = false;
     
@@ -127,14 +129,14 @@ public void timing() {
         n = 0;
         sec++;
 
-        if(getPosibilidad(posNuevoBlackHole)) {
+        if(utils.getPosibilidad(posNuevoBlackHole)) {
             addBlackHole();
         }
 
         if (sec % 2 == 0) {
             for (int i = 0; i < blackHoles.size(); i++) {
-                blackHoles.get(i).setArribaAbajo(getRandom(0, 2));
-                blackHoles.get(i).setIzquierdaDerecha(getRandom(0, 2));
+                blackHoles.get(i).setArribaAbajo(utils.getRandom(0, 2));
+                blackHoles.get(i).setIzquierdaDerecha(utils.getRandom(0, 2));
             }
         }
     }
@@ -219,6 +221,7 @@ public void printScreen() {
     textAlign(LEFT);
     text("Nivel: " + nivel, 10, 30);
     text("Comidos: " + comidos, width - 140, 30);
+    text("a0." + VERSION, width - 60, height - 10);
     
     if(visibleComando) {
         textSize(16);
@@ -243,9 +246,9 @@ public void addBlackHole() {
         valido = true;
         intento++;
         
-        diametro = getRandom(INIT_MIN_DIAMETRO, INIT_MAX_DIAMETRO);
-        x = getRandom(INIT_MAX_DIAMETRO / 2, ancho - (INIT_MAX_DIAMETRO / 2));
-        y = getRandom(INIT_MAX_DIAMETRO / 2, alto - (INIT_MAX_DIAMETRO / 2));
+        diametro = utils.getRandom(INIT_MIN_DIAMETRO, INIT_MAX_DIAMETRO);
+        x = utils.getRandom(INIT_MAX_DIAMETRO / 2, ancho - (INIT_MAX_DIAMETRO / 2));
+        y = utils.getRandom(INIT_MAX_DIAMETRO / 2, alto - (INIT_MAX_DIAMETRO / 2));
         
         if(jugador.posicionOcupada(x, y, diametro)) {
             valido = false;
@@ -261,7 +264,7 @@ public void addBlackHole() {
     
     //masaTotal += masa;
     if(intento < 10) {
-        blackHoles.add(new BlackHole(0, x, y, false));
+        blackHoles.add(new BlackHole(0, x, y));
         blackHoles.get(blackHoles.size() - 1).setCreciendo(diametro);
     }
 }
@@ -325,14 +328,6 @@ public void validarColision(int i) {
             }
         }
     }
-}
-
-public int getRandom(int min, int max) {
-    return rand.nextInt(max - min + 1) + min;
-}
-
-public boolean getPosibilidad(int porcentaje) {
-    return porcentaje >= getRandom(1, 100);
 }
 
 public void mostrarTexto(String texto, int duracionTexto) {
