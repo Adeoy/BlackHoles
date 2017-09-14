@@ -1,17 +1,18 @@
 import ddf.minim.*;
 
-private int VERSION = 11;
+private int VERSION = 12;
 
 private ArrayList<BlackHole> blackHoles;
+private ArrayList<WhiteHole> whiteHoles;
 private Jugador jugador;
-private int numBlackHoles = 5;
+private int numBlackHoles = 5, numWhiteHoles = 2;
 private Utils utils;
 private int ancho = 800, alto = 600;
 private int fdx = 0, fdy = 0, direccionFondo;
 private float diametroJugador = alto / 10;
 
-private int INIT_MAX_DIAMETRO = (alto / 10) * 3;
-private int INIT_MIN_DIAMETRO = alto / 30;
+private int maxDiametroBlack = (alto / 10) * 3, maxDiametroWhite = maxDiametroBlack / 2;
+private int minDiametroBlack = alto / 30, minDiametroWhite = minDiametroBlack / 2;
 
 private String texto;
 private int duracionTexto;
@@ -20,9 +21,8 @@ private boolean visibleComando;
 private int n, sec, nt;
 private int comidos;
 private int muertes = 0;
-//private float masaTotal = 50.0;
 private int nivel = 1;
-private int posNuevoBlackHole = 25;
+private int posNuevoBlackHole = 25, posNuevoWhiteHole = 5;
 
 private boolean inmortal;
 private PImage bg, ft1, ft2;
@@ -49,6 +49,7 @@ public void setup() {
 public void init() {
     jugador = new Jugador(diametroJugador, width / 2, height / 2);
     blackHoles = new ArrayList();
+    whiteHoles = new ArrayList();
     utils = new Utils();
     inmortal = false;
     visibleComando = false;
@@ -58,9 +59,17 @@ public void init() {
     sec = 0;
     comidos = 0;
     nivel = 1;
+    
+    maxDiametroBlack = (alto / 10) * 3; maxDiametroWhite = maxDiametroBlack / 2;
+    minDiametroBlack = alto / 30; minDiametroWhite = minDiametroBlack / 2;
+    posNuevoBlackHole = 25; posNuevoWhiteHole = 5;
 
     for (int i = 0; i < numBlackHoles; i++) {
         addBlackHole();
+    }
+    
+    for (int i = 0; i < numWhiteHoles; i++) {
+        addWhiteHole();
     }
     
     mostrarTexto("Nivel 1", 3);
@@ -79,10 +88,26 @@ public void draw() {
         blackHoles.get(i).mover();
         blackHoles.get(i).dibujar();
 
-        validarColision(i);
+        validarBlackColision(i);
         
         if(blackHoles.get(i).isMuerto()) {
             removeBlackHole(i);
+            i--;
+        }
+    }
+    
+    for (int i = 0; i < whiteHoles.size(); i++) {
+        if(i == -1) {
+            break;
+        }
+      
+        whiteHoles.get(i).mover();
+        whiteHoles.get(i).dibujar();
+
+        validarWhiteColision(i);
+        
+        if(whiteHoles.get(i).isMuerto()) {
+            removeWhiteHole(i);
             i--;
         }
     }
@@ -132,11 +157,20 @@ public void timing() {
         if(utils.getPosibilidad(posNuevoBlackHole)) {
             addBlackHole();
         }
+        
+        if(utils.getPosibilidad(posNuevoWhiteHole)) {
+            addWhiteHole();
+        }
 
         if (sec % 2 == 0) {
             for (int i = 0; i < blackHoles.size(); i++) {
                 blackHoles.get(i).setArribaAbajo(utils.getRandom(0, 2));
                 blackHoles.get(i).setIzquierdaDerecha(utils.getRandom(0, 2));
+            }
+            
+            for (int i = 0; i < whiteHoles.size(); i++) {
+                whiteHoles.get(i).setArribaAbajo(utils.getRandom(0, 2));
+                whiteHoles.get(i).setIzquierdaDerecha(utils.getRandom(0, 2));
             }
         }
     }
@@ -146,42 +180,62 @@ public void leveling() {
     switch(comidos) {
         case 10:
             nivel = 2;
-            jugador.setDecreciendo(jugador.getDiametro() * 0.2);
+            jugador.setDecreciendo(jugador.getDiametro() * 0.30);
             posNuevoBlackHole = 40;
-            INIT_MAX_DIAMETRO += 20;
-            INIT_MIN_DIAMETRO += 20;
+            maxDiametroBlack += 20;
+            minDiametroBlack += 20;
+            
+            posNuevoWhiteHole = 10;
+            maxDiametroWhite += 10;
+            minDiametroWhite += 10;
             mostrarTexto("Nivel 2", 3);
             break;
         case 20:
             nivel = 3;
-            jugador.setDecreciendo(jugador.getDiametro() * 0.35);
+            jugador.setDecreciendo(jugador.getDiametro() * 0.45);
             posNuevoBlackHole = 55;
-            INIT_MAX_DIAMETRO += 20;
-            INIT_MIN_DIAMETRO += 20;
+            maxDiametroBlack += 20;
+            minDiametroBlack += 20;
+            
+            posNuevoWhiteHole = 15;
+            maxDiametroWhite += 10;
+            minDiametroWhite += 10;
             mostrarTexto("Nivel 3", 3);
             break;
         case 30:
             nivel = 4;
-            jugador.setDecreciendo(jugador.getDiametro() * 0.50);
+            jugador.setDecreciendo(jugador.getDiametro() * 0.60);
             posNuevoBlackHole = 70;
-            INIT_MAX_DIAMETRO += 20;
-            INIT_MIN_DIAMETRO += 20;
+            maxDiametroBlack += 20;
+            minDiametroBlack += 20;
+            
+            posNuevoWhiteHole = 20;
+            maxDiametroWhite += 10;
+            minDiametroWhite += 10;
             mostrarTexto("Nivel 4", 3);
             break;
         case 40:
             nivel = 5;
-            jugador.setDecreciendo(jugador.getDiametro() * 0.7);
+            jugador.setDecreciendo(jugador.getDiametro() * 0.70);
             posNuevoBlackHole = 85;
-            INIT_MAX_DIAMETRO += 20;
-            INIT_MIN_DIAMETRO += 20;
+            maxDiametroBlack += 20;
+            minDiametroBlack += 20;
+            
+            posNuevoWhiteHole = 25;
+            maxDiametroWhite += 10;
+            minDiametroWhite += 10;
             mostrarTexto("Nivel 5", 3);
             break;
         case 50:
             nivel = 6;
-            jugador.setDecreciendo(jugador.getDiametro() * 0.85);
+            jugador.setDecreciendo(jugador.getDiametro() * 0.80);
             posNuevoBlackHole = 100;
-            INIT_MAX_DIAMETRO += 20;
-            INIT_MIN_DIAMETRO += 20;
+            maxDiametroBlack += 20;
+            minDiametroBlack += 20;
+            
+            posNuevoWhiteHole = 30;
+            maxDiametroWhite += 10;
+            minDiametroWhite += 10;
             mostrarTexto("Nivel 6", 3);
             break;
     }
@@ -232,23 +286,39 @@ public void printScreen() {
         text("Inmortal: I", width - 130, height / 2 + 80);
         text("BlackHoles: " + blackHoles.size(), width - 130, height / 2 + 100);
         text("Muertes: " + muertes, width - 130, height / 2 + 120);
-        //text("Masa Total: " + masaTotal, width - 130, 190); Recalcular mejor..
     }
 }
 
 public void addBlackHole() {
-    float diametro;
+    float[] holeData = posicionValida();
+    
+    if(holeData[0] < 100.0f) {
+        blackHoles.add(new BlackHole(0, holeData[2], holeData[3]));
+        blackHoles.get(blackHoles.size() - 1).setCreciendo(holeData[1]);
+    }
+}
+
+public void addWhiteHole() {
+    float[] holeData = posicionValida();
+    
+    if(holeData[0] < 100.0f) {
+        whiteHoles.add(new WhiteHole(0, holeData[2], holeData[3]));
+        whiteHoles.get(whiteHoles.size() - 1).setCreciendo(holeData[1]);
+    }
+}
+
+public float[] posicionValida() {
     boolean valido;
-    float x, y;
-    float intento = 0;
+    float intento = 0.0f;
+    float diametro, x, y;
     
     do {
         valido = true;
         intento++;
         
-        diametro = utils.getRandom(INIT_MIN_DIAMETRO, INIT_MAX_DIAMETRO);
-        x = utils.getRandom(INIT_MAX_DIAMETRO / 2, ancho - (INIT_MAX_DIAMETRO / 2));
-        y = utils.getRandom(INIT_MAX_DIAMETRO / 2, alto - (INIT_MAX_DIAMETRO / 2));
+        diametro = utils.getRandom(minDiametroBlack, maxDiametroBlack);
+        x = utils.getRandom(maxDiametroBlack / 2, ancho - (maxDiametroBlack / 2));
+        y = utils.getRandom(maxDiametroBlack / 2, alto - (maxDiametroBlack / 2));
         
         if(jugador.posicionOcupada(x, y, diametro)) {
             valido = false;
@@ -258,20 +328,26 @@ public void addBlackHole() {
         for(int i = 0; i < blackHoles.size(); i++) {
             if(blackHoles.get(i).posicionOcupada(x, y, diametro)) {
               valido = false;
+              continue;
+            }
+        }
+        
+        for(int i = 0; i < whiteHoles.size(); i++) {
+            if(whiteHoles.get(i).posicionOcupada(x, y, diametro)) {
+              valido = false;
             }
         }
     } while (intento < 100 && !valido);
     
-    //masaTotal += masa;
-    if(intento < 10) {
-        blackHoles.add(new BlackHole(0, x, y));
-        blackHoles.get(blackHoles.size() - 1).setCreciendo(diametro);
-    }
+    return new float[]{intento, diametro, x, y};
 }
 
-public void removeBlackHole(int index) {
-    //masaTotal -= blackHoles.get(index).getDiametro();
-    blackHoles.remove(index);
+public void removeBlackHole(int i) {
+    blackHoles.remove(i);
+}
+
+public void removeWhiteHole(int i) {
+    whiteHoles.remove(i);
 }
 
 public void detener() {
@@ -286,7 +362,7 @@ public void continuar() {
     }
 }
 
-public void validarColision(int i) {
+public void validarBlackColision(int i) {
     int estado = jugador.colision(blackHoles.get(i).getPosicion().getX(), blackHoles.get(i).getPosicion().getY(), blackHoles.get(i).getDiametro(), blackHoles.get(i).isMuriendo());
 
     if (estado == 1) {
@@ -294,7 +370,6 @@ public void validarColision(int i) {
         blackHoles.get(i).setMuriendo(true);
         comidos++;
         
-        //absorb = minim.loadFile("absorb0" + (getRandom(1, 4)) + ".mp3");
         absorb = minim.loadFile("absorb05.mp3");
         absorb.play();
         
@@ -325,6 +400,89 @@ public void validarColision(int i) {
                     enemyAbsorb.play();
                     break;
                 }
+            }
+        }
+        
+        for (int j = 0; j < whiteHoles.size(); j++) {
+            int estado2 = blackHoles.get(i).colision(whiteHoles.get(j).getPosicion().getX(), whiteHoles.get(j).getPosicion().getY(), whiteHoles.get(j).getDiametro(), whiteHoles.get(j).isMuriendo());
+    
+            if (estado2 == 1) {
+                blackHoles.get(i).setDecreciendo(whiteHoles.get(j).getDiametro() / 4);
+                whiteHoles.get(j).setMuriendo(true);
+                    
+                enemyAbsorb = minim.loadFile("absorb06.mp3");
+                enemyAbsorb.play();
+                break;
+            } else if (estado2 == 2) {
+                whiteHoles.get(j).setDecreciendo(blackHoles.get(i).getDiametro() / 4);
+                blackHoles.get(i).setMuriendo(true);
+                    
+                enemyAbsorb = minim.loadFile("absorb06.mp3");
+                enemyAbsorb.play();
+                break;
+            }
+        }
+    }
+}
+
+public void validarWhiteColision(int i) {
+    int estado = jugador.colision(whiteHoles.get(i).getPosicion().getX(), whiteHoles.get(i).getPosicion().getY(), whiteHoles.get(i).getDiametro(), whiteHoles.get(i).isMuriendo());
+
+    if (estado == 1) {
+        jugador.setDecreciendo(whiteHoles.get(i).getDiametro() / 2);
+        whiteHoles.get(i).setMuriendo(true);
+        //comidos++;
+        
+        absorb = minim.loadFile("absorb05.mp3");
+        absorb.play();
+        
+        //leveling();
+    } else if (estado == 2 && !inmortal) {
+        jugador.setMuriendo(true);
+        gameover = minim.loadFile("gameover.mp3");
+        gameover.play();
+        
+        mostrarTexto("Has morido :c", 3);
+    } else if (estado == 0) {
+        for (int j = 0; j < whiteHoles.size(); j++) {
+            if(i != j) {
+                int estado2 = whiteHoles.get(i).colision(whiteHoles.get(j).getPosicion().getX(), whiteHoles.get(j).getPosicion().getY(), whiteHoles.get(j).getDiametro(), whiteHoles.get(j).isMuriendo());
+    
+                if (estado2 == 1) {
+                    whiteHoles.get(i).setCreciendo(whiteHoles.get(j).getDiametro() / 2);
+                    whiteHoles.get(j).setMuriendo(true);
+                    
+                    enemyAbsorb = minim.loadFile("absorb06.mp3");
+                    enemyAbsorb.play();
+                    break;
+                } else if (estado2 == 2) {
+                    whiteHoles.get(j).setCreciendo(whiteHoles.get(i).getDiametro() / 2);
+                    whiteHoles.get(i).setMuriendo(true);
+                    
+                    enemyAbsorb = minim.loadFile("absorb06.mp3");
+                    enemyAbsorb.play();
+                    break;
+                }
+            }
+        }
+        
+        for (int j = 0; j < blackHoles.size(); j++) {
+            int estado2 = whiteHoles.get(i).colision(blackHoles.get(j).getPosicion().getX(), blackHoles.get(j).getPosicion().getY(), blackHoles.get(j).getDiametro(), blackHoles.get(j).isMuriendo());
+    
+            if (estado2 == 1) {
+                whiteHoles.get(i).setDecreciendo(blackHoles.get(j).getDiametro() / 2);
+                blackHoles.get(j).setMuriendo(true);
+                    
+                enemyAbsorb = minim.loadFile("absorb06.mp3");
+                enemyAbsorb.play();
+                break;
+            } else if (estado2 == 2) {
+                blackHoles.get(j).setDecreciendo(whiteHoles.get(i).getDiametro() / 2);
+                whiteHoles.get(i).setMuriendo(true);
+                    
+                enemyAbsorb = minim.loadFile("absorb06.mp3");
+                enemyAbsorb.play();
+                break;
             }
         }
     }
