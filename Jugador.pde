@@ -1,31 +1,20 @@
 import java.util.Random;
 
 public class Jugador extends Hole {
-
+        
     public Jugador(float diametro, float x, float y) {
         super(diametro, x, y);
         this.colorC = color(75, 0, 130);
         this.colorInterior = color(31, 31, 31);
+        
+        izquierdaDerecha = 0;
+        arribaAbajo = 0;
+        moviendose = true;
+        velocidad = 4;
     }
 
     public void dibujar() {
         super.dibujar();
-         
-        if(isMuriendo()) {
-            animarMuerte();
-        }
-      
-        if (isMoviendose()) {
-            animarMovimiento();
-        }
-        
-        if(isCreciendo()) {
-            animarCrecimiento();
-        }
-        
-        if(isDecreciendo()) {
-            animarDecrecimiento();
-        }
         
         stroke(255);
         
@@ -48,6 +37,28 @@ public class Jugador extends Hole {
         dx = (x - posicion.getX()) / 60;
         dy = (y - posicion.getY()) / 60;
     }
+    
+    /*public void padMove(float x, float y) {
+        if(isMuriendo()) {
+            return;
+        }
+      
+        //moviendose = true;
+        
+        izquierdaDerecha = 0;
+        if(x > posicion.getX()) {
+            izquierdaDerecha = 2;
+        } else if(x < posicion.getX()) {
+            izquierdaDerecha = 1;
+        }
+        
+        arribaAbajo = 0;
+        if(y > posicion.getY()) {
+            arribaAbajo = 2;
+        } else if(y < posicion.getY()) {
+            arribaAbajo = 1;
+        }
+    }*/
     
     public int colision(float x, float y, float tamanio, boolean enemigoMuriendo) {
         if(enemigoMuriendo) {

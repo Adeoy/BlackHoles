@@ -4,6 +4,7 @@ public class Hole {
 
     protected float diametro, radio, diametroFinal, masDiametro, menosDiametro;
     protected Posicion posicion;
+    protected int velocidad;
     protected color colorC, colorInterior;
     protected float dx, dy;
     protected Utils utils;
@@ -34,7 +35,7 @@ public class Hole {
     }
 
     public void dibujar() {
-        if(isMuriendo()) {
+        if (isMuriendo()) {
             animarMuerte();
         }
       
@@ -42,11 +43,11 @@ public class Hole {
             animarMovimiento();
         }
         
-        if(isCreciendo()) {
+        if (isCreciendo()) {
             animarCrecimiento();
         }
         
-        if(isDecreciendo()) {
+        if (isDecreciendo()) {
             animarDecrecimiento();
         }
     }
@@ -64,7 +65,7 @@ public class Hole {
             posicion.setY(0);
         }
 
-        if (x <= 0 || x > width) {
+        if (x <= 0 || x >= width) {
             if (y >= 0 && y < height) {
                 posicion.setY(y);
             } else if (y >= height) {
@@ -74,7 +75,7 @@ public class Hole {
             }
         }
 
-        if (y <= 0 || y > height) {
+        if (y <= 0 || y >= height) {
             if (x < width && x >= 0) {
                 posicion.setX(x);
             } else if (x >= width) {
@@ -93,15 +94,15 @@ public class Hole {
         int x = 0, y = 0;
 
         if (izquierdaDerecha == 2) {
-            x = utils.getRandom(0, 2);
+            x = 1;
         } else if (izquierdaDerecha == 1) {
-            x = utils.getRandom(-2, 0);
+            x = -1;
         }
 
         if (arribaAbajo == 2) {
-            y = utils.getRandom(0, 2);
+            y = 1;
         } else if (arribaAbajo == 1) {
-            y = utils.getRandom(-2, 0);
+            y = -1;
         }
 
         if (posicion.getY() + y >= 0 && posicion.getY() + y < height && posicion.getX() + x < width && posicion.getX() + x >= 0) {
@@ -116,12 +117,15 @@ public class Hole {
         }
       
         float m = 0.0f;
+        float tempX = x - posicion.getX();
+        float tempY = y - posicion.getY();
+        float tempR = radio + (tamanio / 2);
+        
+        m = (tempX * tempX) + (tempY * tempY);
 
-        m = (float) Math.sqrt(pow(x - posicion.getX(), 2) + pow(y - posicion.getY(), 2));
-
-        if (radio > m && tamanio / 2 < radio) {
+        if ((radio * radio) > m && tamanio / 2 < radio) {
             return 1;
-        } else if (tamanio / 2 > m && radio < tamanio / 2) {
+        } else if (((tamanio / 2) * (tamanio / 2)) > m && radio < tamanio / 2) {
             return 2;
         } else {
             return 0;
@@ -131,18 +135,40 @@ public class Hole {
     public boolean posicionOcupada(float x, float y, float tamanio) {
         float m = 0.0f;
 
-        m = (float) Math.sqrt(pow(x - posicion.getX(), 2) + pow(y - posicion.getY(), 2));
+        float tempX = x - posicion.getX();
+        float tempY = y - posicion.getY();
+        float tempR = radio + (tamanio / 2);
+        
+        m = (tempX * tempX) + (tempY * tempY);        
 
-        return radio + (tamanio / 2) > m;
+        return tempR * tempR > m;
     }
     
-    public void animarMovimiento() {
+    /*public void animarMovimiento() {
         validarMovimiento(posicion.getX() + dx, posicion.getY() + dy);
 
         frameCont++;
         if (frameCont >= 60) {
             moviendose = false;
         }
+    }*/
+    
+    public void animarMovimiento() {
+        int x = 0, y = 0;
+        
+        if (izquierdaDerecha == 2) {
+            x = velocidad;
+        } else if (izquierdaDerecha == 1) {
+            x = -velocidad;
+        }
+
+        if (arribaAbajo == 2) {
+            y = velocidad;
+        } else if (arribaAbajo == 1) {
+            y = -velocidad;
+        }
+        
+        validarMovimiento(posicion.getX() + x, posicion.getY() + y);
     }
     
     public void animarMuerte() {
@@ -217,6 +243,10 @@ public class Hole {
         this.menosDiametro = menosDiametro;
         this.decreciendo = true;
     }
+    
+    public void setVelocidad(int velocidad) {
+        this.velocidad = velocidad;
+    }
 
     public float getDiametro() {
         return diametro;
@@ -256,5 +286,9 @@ public class Hole {
     
     public boolean isDecreciendo() {
         return decreciendo;
+    }
+    
+    public int getVelocidad() {
+        return velocidad;
     }
 }

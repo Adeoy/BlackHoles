@@ -1,24 +1,24 @@
 import ddf.minim.*;
 
-private int VERSION = 12;
+private int VERSION = 13;
 
 private ArrayList<BlackHole> blackHoles;
 private ArrayList<WhiteHole> whiteHoles;
 private Jugador jugador;
 private int numBlackHoles = 5, numWhiteHoles = 2;
 private Utils utils;
-private int ancho = 800, alto = 600;
 private int fdx = 0, fdy = 0, direccionFondo;
-private float diametroJugador = alto / 10;
+private float diametroJugador;
 
-private int maxDiametroBlack = (alto / 10) * 3, maxDiametroWhite = maxDiametroBlack / 2;
-private int minDiametroBlack = alto / 30, minDiametroWhite = minDiametroBlack / 2;
+private int maxDiametroBlack, maxDiametroWhite;
+private int minDiametroBlack, minDiametroWhite;
 
 private String texto;
 private int duracionTexto;
 private boolean visibleComando;
+private boolean menu, pausa;
 
-private int n, sec, nt;
+private int n, sec, min, nt;
 private int comidos;
 private int muertes = 0;
 private int nivel = 1;
@@ -27,6 +27,8 @@ private int posNuevoBlackHole = 25, posNuevoWhiteHole = 5;
 private boolean inmortal;
 private PImage bg, ft1, ft2;
 
+private Boton btnStart;
+
 private Minim minim;
 private AudioPlayer song;
 private AudioPlayer absorb;
@@ -34,34 +36,45 @@ private AudioPlayer enemyAbsorb;
 private AudioPlayer gameover;
 
 public void setup() {
+    fullScreen();
+    
     frameRate(60);
-    size(800, 600);
     bg = loadImage("bg.png");
     
     minim = new Minim(this);
  
     song = minim.loadFile("space.mp3");
-    song.play();
+    //song.play();    
     
     init();
 }
 
 public void init() {
+    diametroJugador = height / 10;
+  
     jugador = new Jugador(diametroJugador, width / 2, height / 2);
     blackHoles = new ArrayList();
     whiteHoles = new ArrayList();
     utils = new Utils();
     inmortal = false;
-    visibleComando = false;
+    visibleComando = false;  
     
     n = 0; nt = -1; duracionTexto = 3;
     fdx = 0; fdy = 0; direccionFondo = 1;
-    sec = 0;
+    sec = 0; min = 0;
     comidos = 0;
     nivel = 1;
+    menu = true; pausa = false;
     
-    maxDiametroBlack = (alto / 10) * 3; maxDiametroWhite = maxDiametroBlack / 2;
-    minDiametroBlack = alto / 30; minDiametroWhite = minDiametroBlack / 2;
+    stroke(191);
+    rectMode(CENTER);
+    fill(color(31, 31, 31));
+    rect(width / 2, height / 2, width / 8, height / 8, height / 12);
+    
+    btnStart = new Boton(width / 2, height / 2, width / 8, height / 8, height / 12, "Iniciar", 191, color(31, 31, 31));
+    
+    maxDiametroBlack = (height / 10) * 3; maxDiametroWhite = maxDiametroBlack / 2;
+    minDiametroBlack = height / 30; minDiametroWhite = minDiametroBlack / 2;
     posNuevoBlackHole = 25; posNuevoWhiteHole = 5;
 
     for (int i = 0; i < numBlackHoles; i++) {
@@ -79,6 +92,16 @@ public void draw() {
     background(0);
   
     animarFondo();
+    
+    if(menu) {
+        dibujarMenu();
+        textSize(20);
+        fill(255);
+        textAlign(LEFT);
+    
+        text("a0." + VERSION, width - 60, height - 10);
+        return;
+    }
   
     for (int i = 0; i < blackHoles.size(); i++) {
         if(i == -1) {
@@ -87,8 +110,10 @@ public void draw() {
       
         blackHoles.get(i).mover();
         blackHoles.get(i).dibujar();
-
-        validarBlackColision(i);
+        
+        if(n % 6 == 0 && !pausa) {
+            validarBlackColision(i);
+        }
         
         if(blackHoles.get(i).isMuerto()) {
             removeBlackHole(i);
@@ -104,7 +129,9 @@ public void draw() {
         whiteHoles.get(i).mover();
         whiteHoles.get(i).dibujar();
 
-        validarWhiteColision(i);
+        if(n % 6 == 0 && !pausa) {
+            validarWhiteColision(i);
+        }
         
         if(whiteHoles.get(i).isMuerto()) {
             removeWhiteHole(i);
@@ -121,11 +148,14 @@ public void draw() {
     
     fill(255);
     
-    timing();
-    printScreen();
+    if(!pausa) {
+        timing();
+    }
     
+    dibujarHUD();
+    printScreen();    
     
-    if(nt >= 0 && nt < duracionTexto * 60) {
+    if((nt >= 0 && nt < duracionTexto * 60) || pausa) {
         mostrarTexto();
         nt++;
     } else if(nt >= duracionTexto * 60) {
@@ -133,18 +163,35 @@ public void draw() {
     }
 }
 
+public void dibujarHUD() {
+    noStroke();
+    fill(color(255, 255, 255, 127));
+    rectMode(CORNER);
+    rect(0, 0, width, 40);
+}
+
 public void animarFondo() {
-    if(direccionFondo == 1) {
-        ft1 = bg.get(fdx, 0, width - fdx, height);
-        ft2 = bg.get(0, 0, fdx, height);
-      
-        image(ft1, 0, 0);
-        image(ft2, width - fdx, 0);
-        
-        fdx += 2;
-        if (width - fdx < 0) {
-            fdx = 0;
-        }
+    ft1 = bg.get(fdx, 0, width - fdx, height);
+    ft2 = bg.get(0, 0, fdx, height);
+          
+    image(ft1, 0, 0);
+    image(ft2, width - fdx, 0);
+            
+    fdx += 1;
+    if (width - fdx < 0) {
+        fdx = 0;
+    }
+}
+
+public void dibujarMenu() {
+    textSize(70);
+    textAlign(CENTER, CENTER);
+    fill(255);
+    text("BlackHoles", width / 2, height / 4);
+    
+    btnStart.dibujar();
+    if(n % 6 == 0) {
+        btnStart.validarColision(mouseX, mouseY, 1);
     }
 }
 
@@ -153,6 +200,11 @@ public void timing() {
     if (n >= 60) {
         n = 0;
         sec++;
+        
+        if(sec >= 60) {
+            sec = 0;
+            min++;
+        }
 
         if(utils.getPosibilidad(posNuevoBlackHole)) {
             addBlackHole();
@@ -188,6 +240,9 @@ public void leveling() {
             posNuevoWhiteHole = 10;
             maxDiametroWhite += 10;
             minDiametroWhite += 10;
+            
+            jugador.setVelocidad(5);
+            
             mostrarTexto("Nivel 2", 3);
             break;
         case 20:
@@ -200,6 +255,9 @@ public void leveling() {
             posNuevoWhiteHole = 15;
             maxDiametroWhite += 10;
             minDiametroWhite += 10;
+            
+            jugador.setVelocidad(6);
+            
             mostrarTexto("Nivel 3", 3);
             break;
         case 30:
@@ -212,6 +270,9 @@ public void leveling() {
             posNuevoWhiteHole = 20;
             maxDiametroWhite += 10;
             minDiametroWhite += 10;
+            
+            jugador.setVelocidad(7);
+            
             mostrarTexto("Nivel 4", 3);
             break;
         case 40:
@@ -224,6 +285,9 @@ public void leveling() {
             posNuevoWhiteHole = 25;
             maxDiametroWhite += 10;
             minDiametroWhite += 10;
+            
+            jugador.setVelocidad(8);
+            
             mostrarTexto("Nivel 5", 3);
             break;
         case 50:
@@ -236,14 +300,18 @@ public void leveling() {
             posNuevoWhiteHole = 30;
             maxDiametroWhite += 10;
             minDiametroWhite += 10;
+            
+            jugador.setVelocidad(9);
+            
             mostrarTexto("Nivel 6", 3);
             break;
     }
 }
 
 public void mostrarTexto() {
-    textSize(50);
-    textAlign(CENTER);
+    textSize(70);
+    textAlign(CENTER, CENTER);
+    fill(255);
     text(texto, width / 2, height / 2);
 }
 
@@ -251,7 +319,22 @@ public void mouseDragged() {
     jugador.softMove(mouseX, mouseY);
 }
 
+public void mouseClicked() {
+    if(menu) {
+        btnStart.validarColision(mouseX, mouseY, 2);
+        if(btnStart.isCliqueado()) {
+            menu = false;
+        }
+    }
+  
+    //jugador.padMove(mouseX, mouseY);
+}
+
 public void keyPressed() {
+    if(menu) {
+        return;
+    }
+  
     if (keyCode == 'R') {
         init();
     } else if (keyCode == 'N') {
@@ -264,17 +347,63 @@ public void keyPressed() {
         inmortal = !inmortal;
     } else if (keyCode == 'H') {
         visibleComando = !visibleComando;
+    } else if (keyCode == 'P') {
+        pausa = !pausa;
+        pausar();
+    } 
+    
+    if(pausa) {
+        return;
+    }
+    
+    if (keyCode == UP) {
+        jugador.setArribaAbajo(1);
+    } else if (keyCode == DOWN) {
+        jugador.setArribaAbajo(2);
+    }
+    
+    if (keyCode == RIGHT) {
+        jugador.setIzquierdaDerecha(2);
+    } else if (keyCode == LEFT) {
+        jugador.setIzquierdaDerecha(1);
+    }
+}
+
+public void keyReleased() {
+    if(pausa || menu) {
+        return;
+    }
+    
+    if(keyCode == UP || keyCode == DOWN) {
+        jugador.setArribaAbajo(0);
+    }
+    
+    if(keyCode == RIGHT || keyCode == LEFT) {
+        jugador.setIzquierdaDerecha(0);
     }
 }
 
 public void printScreen() {
     textSize(20);
+    fill(255);
     
+    String m = "", s = "";
+    if(min < 10) {
+        m = "0" + min;
+    } else {
+        m = "" + min;
+    }
+    if(sec < 10) {
+        s = "0" + sec;
+    } else {
+        s = "" + sec;
+    }
     textAlign(CENTER);
-    text("Segundos: " + sec, width / 2, 30);
+    text(m + ":" + s, width / 2, 25);
+    
     textAlign(LEFT);
-    text("Nivel: " + nivel, 10, 30);
-    text("Comidos: " + comidos, width - 140, 30);
+    text("Nivel: " + nivel, 10, 25);
+    text("Comidos: " + comidos, width - 140, 25);
     text("a0." + VERSION, width - 60, height - 10);
     
     if(visibleComando) {
@@ -292,7 +421,7 @@ public void printScreen() {
 public void addBlackHole() {
     float[] holeData = posicionValida();
     
-    if(holeData[0] < 100.0f) {
+    if(holeData[0] < 20) {
         blackHoles.add(new BlackHole(0, holeData[2], holeData[3]));
         blackHoles.get(blackHoles.size() - 1).setCreciendo(holeData[1]);
     }
@@ -301,7 +430,7 @@ public void addBlackHole() {
 public void addWhiteHole() {
     float[] holeData = posicionValida();
     
-    if(holeData[0] < 100.0f) {
+    if(holeData[0] < 20) {
         whiteHoles.add(new WhiteHole(0, holeData[2], holeData[3]));
         whiteHoles.get(whiteHoles.size() - 1).setCreciendo(holeData[1]);
     }
@@ -317,8 +446,8 @@ public float[] posicionValida() {
         intento++;
         
         diametro = utils.getRandom(minDiametroBlack, maxDiametroBlack);
-        x = utils.getRandom(maxDiametroBlack / 2, ancho - (maxDiametroBlack / 2));
-        y = utils.getRandom(maxDiametroBlack / 2, alto - (maxDiametroBlack / 2));
+        x = utils.getRandom(maxDiametroBlack / 2, width - (maxDiametroBlack / 2));
+        y = utils.getRandom(maxDiametroBlack / 2, height - (maxDiametroBlack / 2));
         
         if(jugador.posicionOcupada(x, y, diametro)) {
             valido = false;
@@ -337,7 +466,7 @@ public float[] posicionValida() {
               valido = false;
             }
         }
-    } while (intento < 100 && !valido);
+    } while (intento < 20 && !valido);
     
     return new float[]{intento, diametro, x, y};
 }
@@ -354,12 +483,30 @@ public void detener() {
     for (int i = 0; i < blackHoles.size(); i++) {
         blackHoles.get(i).setDetener(true);
     }
+    
+    for (int i = 0; i < whiteHoles.size(); i++) {
+        whiteHoles.get(i).setDetener(true);
+    }
 }
 
 public void continuar() {
     for (int i = 0; i < blackHoles.size(); i++) {
         blackHoles.get(i).setDetener(false);
     }
+    
+    for (int i = 0; i < whiteHoles.size(); i++) {
+        whiteHoles.get(i).setDetener(false);
+    }
+}
+
+public void pausar() {
+  if(pausa) {
+      mostrarTexto("Pausa", 1);
+      detener();
+  } else {
+      nt = -1;
+      continuar();
+  }
 }
 
 public void validarBlackColision(int i) {
