@@ -1,6 +1,6 @@
 import ddf.minim.*;
 
-private int VERSION = 13;
+private int VERSION = 14;
 
 private ArrayList<BlackHole> blackHoles;
 private ArrayList<WhiteHole> whiteHoles;
@@ -16,7 +16,7 @@ private int minDiametroBlack, minDiametroWhite;
 private String texto;
 private int duracionTexto;
 private boolean visibleComando;
-private boolean menu, pausa;
+private boolean menu, pausa, jugando;
 
 private int n, sec, min, nt;
 private int comidos;
@@ -44,7 +44,7 @@ public void setup() {
     minim = new Minim(this);
  
     song = minim.loadFile("space.mp3");
-    //song.play();    
+    song.play();    
     
     init();
 }
@@ -64,7 +64,7 @@ public void init() {
     sec = 0; min = 0;
     comidos = 0;
     nivel = 1;
-    menu = true; pausa = false;
+    menu = true; pausa = false; jugando = false;
     
     stroke(191);
     rectMode(CENTER);
@@ -241,7 +241,7 @@ public void leveling() {
             maxDiametroWhite += 10;
             minDiametroWhite += 10;
             
-            jugador.setVelocidad(5);
+            jugador.setVelocidad(4.0f * 9);
             
             mostrarTexto("Nivel 2", 3);
             break;
@@ -256,7 +256,7 @@ public void leveling() {
             maxDiametroWhite += 10;
             minDiametroWhite += 10;
             
-            jugador.setVelocidad(6);
+            jugador.setVelocidad(4.0f * 8);
             
             mostrarTexto("Nivel 3", 3);
             break;
@@ -271,7 +271,7 @@ public void leveling() {
             maxDiametroWhite += 10;
             minDiametroWhite += 10;
             
-            jugador.setVelocidad(7);
+            jugador.setVelocidad(4.0f * 7);
             
             mostrarTexto("Nivel 4", 3);
             break;
@@ -286,7 +286,7 @@ public void leveling() {
             maxDiametroWhite += 10;
             minDiametroWhite += 10;
             
-            jugador.setVelocidad(8);
+            jugador.setVelocidad(4.0f * 6);
             
             mostrarTexto("Nivel 5", 3);
             break;
@@ -301,7 +301,7 @@ public void leveling() {
             maxDiametroWhite += 10;
             minDiametroWhite += 10;
             
-            jugador.setVelocidad(9);
+            jugador.setVelocidad(4.0f * 5);
             
             mostrarTexto("Nivel 6", 3);
             break;
@@ -316,18 +316,24 @@ public void mostrarTexto() {
 }
 
 public void mouseDragged() {
-    jugador.softMove(mouseX, mouseY);
+    if(jugando) {
+        jugador.softMove(mouseX, mouseY);
+    }
 }
 
 public void mouseClicked() {
+    if(jugando) {
+        jugador.softMove(mouseX, mouseY);
+        //jugador.padMove(mouseX, mouseY);
+    }
+    
     if(menu) {
         btnStart.validarColision(mouseX, mouseY, 2);
         if(btnStart.isCliqueado()) {
             menu = false;
+            jugando = true;
         }
     }
-  
-    //jugador.padMove(mouseX, mouseY);
 }
 
 public void keyPressed() {
@@ -356,7 +362,7 @@ public void keyPressed() {
         return;
     }
     
-    if (keyCode == UP) {
+    /*if (keyCode == UP) {
         jugador.setArribaAbajo(1);
     } else if (keyCode == DOWN) {
         jugador.setArribaAbajo(2);
@@ -366,7 +372,7 @@ public void keyPressed() {
         jugador.setIzquierdaDerecha(2);
     } else if (keyCode == LEFT) {
         jugador.setIzquierdaDerecha(1);
-    }
+    }*/
 }
 
 public void keyReleased() {
@@ -510,7 +516,7 @@ public void pausar() {
 }
 
 public void validarBlackColision(int i) {
-    int estado = jugador.colision(blackHoles.get(i).getPosicion().getX(), blackHoles.get(i).getPosicion().getY(), blackHoles.get(i).getDiametro(), blackHoles.get(i).isMuriendo());
+    int estado = jugador.colision(blackHoles.get(i).getPosicion().x, blackHoles.get(i).getPosicion().y, blackHoles.get(i).getDiametro(), blackHoles.get(i).isMuriendo());
 
     if (estado == 1) {
         jugador.setCreciendo(blackHoles.get(i).getDiametro() / 4);
@@ -530,7 +536,7 @@ public void validarBlackColision(int i) {
     } else if (estado == 0) {
         for (int j = 0; j < blackHoles.size(); j++) {
             if(i != j) {
-                int estado2 = blackHoles.get(i).colision(blackHoles.get(j).getPosicion().getX(), blackHoles.get(j).getPosicion().getY(), blackHoles.get(j).getDiametro(), blackHoles.get(j).isMuriendo());
+                int estado2 = blackHoles.get(i).colision(blackHoles.get(j).getPosicion().x, blackHoles.get(j).getPosicion().y, blackHoles.get(j).getDiametro(), blackHoles.get(j).isMuriendo());
     
                 if (estado2 == 1) {
                     blackHoles.get(i).setCreciendo(blackHoles.get(j).getDiametro() / 4);
@@ -551,7 +557,7 @@ public void validarBlackColision(int i) {
         }
         
         for (int j = 0; j < whiteHoles.size(); j++) {
-            int estado2 = blackHoles.get(i).colision(whiteHoles.get(j).getPosicion().getX(), whiteHoles.get(j).getPosicion().getY(), whiteHoles.get(j).getDiametro(), whiteHoles.get(j).isMuriendo());
+            int estado2 = blackHoles.get(i).colision(whiteHoles.get(j).getPosicion().x, whiteHoles.get(j).getPosicion().y, whiteHoles.get(j).getDiametro(), whiteHoles.get(j).isMuriendo());
     
             if (estado2 == 1) {
                 blackHoles.get(i).setDecreciendo(whiteHoles.get(j).getDiametro() / 4);
@@ -573,7 +579,7 @@ public void validarBlackColision(int i) {
 }
 
 public void validarWhiteColision(int i) {
-    int estado = jugador.colision(whiteHoles.get(i).getPosicion().getX(), whiteHoles.get(i).getPosicion().getY(), whiteHoles.get(i).getDiametro(), whiteHoles.get(i).isMuriendo());
+    int estado = jugador.colision(whiteHoles.get(i).getPosicion().x, whiteHoles.get(i).getPosicion().y, whiteHoles.get(i).getDiametro(), whiteHoles.get(i).isMuriendo());
 
     if (estado == 1) {
         jugador.setDecreciendo(whiteHoles.get(i).getDiametro() / 2);
@@ -593,7 +599,7 @@ public void validarWhiteColision(int i) {
     } else if (estado == 0) {
         for (int j = 0; j < whiteHoles.size(); j++) {
             if(i != j) {
-                int estado2 = whiteHoles.get(i).colision(whiteHoles.get(j).getPosicion().getX(), whiteHoles.get(j).getPosicion().getY(), whiteHoles.get(j).getDiametro(), whiteHoles.get(j).isMuriendo());
+                int estado2 = whiteHoles.get(i).colision(whiteHoles.get(j).getPosicion().x, whiteHoles.get(j).getPosicion().y, whiteHoles.get(j).getDiametro(), whiteHoles.get(j).isMuriendo());
     
                 if (estado2 == 1) {
                     whiteHoles.get(i).setCreciendo(whiteHoles.get(j).getDiametro() / 2);
@@ -614,7 +620,7 @@ public void validarWhiteColision(int i) {
         }
         
         for (int j = 0; j < blackHoles.size(); j++) {
-            int estado2 = whiteHoles.get(i).colision(blackHoles.get(j).getPosicion().getX(), blackHoles.get(j).getPosicion().getY(), blackHoles.get(j).getDiametro(), blackHoles.get(j).isMuriendo());
+            int estado2 = whiteHoles.get(i).colision(blackHoles.get(j).getPosicion().x, blackHoles.get(j).getPosicion().y, blackHoles.get(j).getDiametro(), blackHoles.get(j).isMuriendo());
     
             if (estado2 == 1) {
                 whiteHoles.get(i).setDecreciendo(blackHoles.get(j).getDiametro() / 2);

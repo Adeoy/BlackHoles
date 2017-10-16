@@ -12,10 +12,10 @@ public class BlackHole extends Hole {
         noStroke();
         
         fill(colorC);
-        ellipse(posicion.getX(), posicion.getY(), diametro, diametro);
+        ellipse(posicion.x, posicion.y, diametro, diametro);
         
         noStroke();
         fill(colorInterior);
-        ellipse(posicion.getX(), posicion.getY(), diametro * 0.66, diametro * 0.66);
+        ellipse(posicion.x, posicion.y, diametro * 0.66, diametro * 0.66);
     }
 }

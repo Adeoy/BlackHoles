@@ -3,8 +3,7 @@ import java.util.Random;
 public class Hole {
 
     protected float diametro, radio, diametroFinal, masDiametro, menosDiametro;
-    protected Posicion posicion;
-    protected int velocidad;
+    protected PVector posicion;
     protected color colorC, colorInterior;
     protected float dx, dy;
     protected Utils utils;
@@ -17,7 +16,7 @@ public class Hole {
     public Hole(float diametro, float x, float y) {
         this.diametro = diametro;
         this.radio = diametro / 2;
-        this.posicion = new Posicion(x, y);
+        this.posicion = new PVector(x, y);
         this.dx = 1.0f;
         this.dy = 1.0f;
         this.utils = new Utils();
@@ -32,15 +31,11 @@ public class Hole {
         this.creciendo = false; this.decreciendo = false;
         this.frameCont = 0; this.frameCrece = 0; this.frameDecrece = 0;
         this.diametroFinal = 0.0f; this.masDiametro = 0.0f; this.menosDiametro = 0.0f;
-    }
+      }
 
     public void dibujar() {
         if (isMuriendo()) {
             animarMuerte();
-        }
-      
-        if (isMoviendose()) {
-            animarMovimiento();
         }
         
         if (isCreciendo()) {
@@ -54,34 +49,34 @@ public class Hole {
 
     public void validarMovimiento(float x, float y) {
         if (y >= 0 && y < height && x < width && x >= 0) {
-            posicion = new Posicion(x, y);
+            posicion = new PVector(x, y);
         } else if (x >= width) {
-            posicion.setX(width);
+            posicion.x = width;
         } else if (x <= 0) {
-            posicion.setX(0);
+            posicion.x = 0;
         } else if (y >= height) {
-            posicion.setY(height);
+            posicion.y = height;
         } else if (y <= 0) {
-            posicion.setY(0);
+            posicion.y = 0;
         }
 
         if (x <= 0 || x >= width) {
             if (y >= 0 && y < height) {
-                posicion.setY(y);
+                posicion.y = y;
             } else if (y >= height) {
-                posicion.setY(height);
+                posicion.y = height;
             } else if (y <= 0) {
-                posicion.setY(0);
+                posicion.y = 0;
             }
         }
 
         if (y <= 0 || y >= height) {
             if (x < width && x >= 0) {
-                posicion.setX(x);
+                posicion.x = x;
             } else if (x >= width) {
-                posicion.setX(width);
+                posicion.x = width;
             } else if (x <= 0) {
-                posicion.setX(0);
+                posicion.x = 0;
             }
         }
     }
@@ -105,9 +100,9 @@ public class Hole {
             y = -1;
         }
 
-        if (posicion.getY() + y >= 0 && posicion.getY() + y < height && posicion.getX() + x < width && posicion.getX() + x >= 0) {
-            posicion.plusX(x);
-            posicion.plusY(y);
+        if (posicion.y + y >= 0 && posicion.y + y < height && posicion.x + x < width && posicion.x + x >= 0) {
+            posicion.x += x;
+            posicion.y += y;
         }
     }
     
@@ -117,15 +112,12 @@ public class Hole {
         }
       
         float m = 0.0f;
-        float tempX = x - posicion.getX();
-        float tempY = y - posicion.getY();
-        float tempR = radio + (tamanio / 2);
         
-        m = (tempX * tempX) + (tempY * tempY);
+        m = PVector.dist(posicion, new PVector(x, y));
 
-        if ((radio * radio) > m && tamanio / 2 < radio) {
+        if (radio > m && tamanio / 2 < radio) {
             return 1;
-        } else if (((tamanio / 2) * (tamanio / 2)) > m && radio < tamanio / 2) {
+        } else if ((tamanio / 2) > m && radio < tamanio / 2) {
             return 2;
         } else {
             return 0;
@@ -134,41 +126,11 @@ public class Hole {
     
     public boolean posicionOcupada(float x, float y, float tamanio) {
         float m = 0.0f;
-
-        float tempX = x - posicion.getX();
-        float tempY = y - posicion.getY();
         float tempR = radio + (tamanio / 2);
         
-        m = (tempX * tempX) + (tempY * tempY);        
+        m = PVector.dist(posicion, new PVector(x, y));    
 
-        return tempR * tempR > m;
-    }
-    
-    /*public void animarMovimiento() {
-        validarMovimiento(posicion.getX() + dx, posicion.getY() + dy);
-
-        frameCont++;
-        if (frameCont >= 60) {
-            moviendose = false;
-        }
-    }*/
-    
-    public void animarMovimiento() {
-        int x = 0, y = 0;
-        
-        if (izquierdaDerecha == 2) {
-            x = velocidad;
-        } else if (izquierdaDerecha == 1) {
-            x = -velocidad;
-        }
-
-        if (arribaAbajo == 2) {
-            y = velocidad;
-        } else if (arribaAbajo == 1) {
-            y = -velocidad;
-        }
-        
-        validarMovimiento(posicion.getX() + x, posicion.getY() + y);
+        return tempR > m;
     }
     
     public void animarMuerte() {
@@ -201,7 +163,7 @@ public class Hole {
     }
 
     public void setPosicion(float x, float y) {
-        this.posicion = new Posicion(x, y);
+        this.posicion = new PVector(x, y);
     }
 
     public void setArribaAbajo(int arribaAbajo) {
@@ -243,16 +205,12 @@ public class Hole {
         this.menosDiametro = menosDiametro;
         this.decreciendo = true;
     }
-    
-    public void setVelocidad(int velocidad) {
-        this.velocidad = velocidad;
-    }
 
     public float getDiametro() {
         return diametro;
     }
 
-    public Posicion getPosicion() {
+    public PVector getPosicion() {
         return posicion;
     }
 
@@ -286,9 +244,5 @@ public class Hole {
     
     public boolean isDecreciendo() {
         return decreciendo;
-    }
-    
-    public int getVelocidad() {
-        return velocidad;
     }
 }

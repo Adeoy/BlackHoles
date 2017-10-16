@@ -1,6 +1,6 @@
 public class Boton {
 
-    private Posicion posicion;
+    private PVector posicion;
     private color colorBorde;
     private color colorFondo;
     private String texto;
@@ -9,7 +9,7 @@ public class Boton {
     private boolean encima, cliqueado;
 
     public Boton(float x, float y, float ancho, float alto, float redondeado, String texto, color colorBorde, color colorFondo) {
-        this.posicion = new Posicion(x, y);
+        this.posicion = new PVector(x, y);
         this.colorBorde = colorBorde;
         this.colorFondo = colorFondo;
         this.texto = texto;
@@ -24,23 +24,23 @@ public class Boton {
         stroke(colorBorde);
         rectMode(CENTER);
         fill(colorFondo);
-        rect(posicion.getX(), posicion.getY(), ancho, alto, redondeado);
+        rect(posicion.x, posicion.y, ancho, alto, redondeado);
         
         if(isEncima()) {
             rectMode(CENTER);
             fill(color(0, 0, 0, 31));
-            rect(posicion.getX(), posicion.getY(), ancho, alto, redondeado);
+            rect(posicion.x, posicion.y, ancho, alto, redondeado);
         }
         
         textSize(40);
         textAlign(CENTER, CENTER);
         fill(223);
-        text(texto, posicion.getX(), posicion.getY());
+        text(texto, posicion.x, posicion.y);
     }
     
     public void validarColision(float x, float y, int estado) {
-        float tempX = posicion.getX() - (ancho / 2);
-        float tempY = posicion.getY() - (alto / 2);
+        float tempX = posicion.x - (ancho / 2);
+        float tempY = posicion.y - (alto / 2);
         
         if(x >= tempX && x < tempX + ancho && y >= tempY && y <= tempY + alto) {
             if(estado == 1) {
@@ -57,11 +57,11 @@ public class Boton {
         }
     }
 
-    public Posicion getPosicion() {
+    public PVector getPosicion() {
         return posicion;
     }
 
-    public void setPosicion(Posicion posicion) {
+    public void setPosicion(PVector posicion) {
         this.posicion = posicion;
     }
 
